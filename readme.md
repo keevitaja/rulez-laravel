@@ -82,7 +82,7 @@ See the example below:
 ```php
 $input = Input::all();
 
-if (Rulez::validateUpdate('users', $input, 5))
+if (Rulez::validateUpdate('users', $input, $id))
 {
     // all ok, lets do the update and redirect
 }

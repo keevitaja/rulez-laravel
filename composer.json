@@ -1,6 +1,8 @@
 {
     "name": "keevitaja/rulez",
-    "description": "",
+    "description": "User input validation",
+    "keywords": ["laravel", "validation", "input"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Tanel Tammik",

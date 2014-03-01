@@ -4,107 +4,119 @@ use Mockery as m;
 
 class RulezTest extends PHPUnit_Framework_TestCase {
 
-	protected $rulez;
-	protected $validator;
+	protected $rules = [
+		'base' => [
+			'title' => 'required',
+			'body' => 'required|min:10'
+		],
+		'create' => [
+			'email' => 'required|email|unique:users'
+		],
+		'update' => [
+			'email' => 'required|email|unique:users,email,%s'
+		]
+	];
 
 	public function tearDown()
 	{
 		m::close();
 	}
 
-	public function setUp()
+	public function test_register_adds_new_rules()
 	{
-		parent::setUp();
+		$mock_validator = m::mock('Keevitaja\Rulez\Validator');
 
-		$this->validator = m::mock('Keevitaja\Rulez\Validator', [
-			'validate' => false,
-			'getErrors' => new stdClass()
-		]);
+		$rulez = new Keevitaja\Rulez\Rulez($mock_validator);
 
-		$this->rulez = new Keevitaja\Rulez\Rulez($this->validator);
-	}
+		$rules = $this->rules;
 
-	public function test_register_rules()
-	{
-		$uRules = [
-			'test' => 'required|min:3'
-		];
-
-		$bRules = [
-			'text' => 'required',
-			'email' => 'required|email'
-		];
-
-		$cRules = [
-			'test' => 'required',
-		];
-
-		$this->rulez->setName('testing');
-
-		$this->rulez->register('testing', function($rulez) use($bRules, $uRules, $cRules)
+		$rulez->register('users', function($rulez) use($rules)
 		{
-			$rulez->addBase($bRules);
-			$rulez->addUpdate($uRules);
-			$rulez->addCreate($cRules);
+			$rulez->addBase($rules['base']);
+			$rulez->addCreate($rules['create']);
+			$rulez->addUpdate($rules['update']);
 		});
 
-		$this->assertEquals($bRules, $this->rulez->getRules('testing', 'base'));
-		$this->assertEquals($cRules, $this->rulez->getRules('testing', 'create'));
-		$this->assertEquals($uRules, $this->rulez->getRules('testing', 'update'));
+		$this->assertEquals($rules['base'], $rulez->getRules('users', 'base'));
+		$this->assertEquals($rules['create'], $rulez->getRules('users', 'create'));
+		$this->assertEquals($rules['update'], $rulez->getRules('users', 'update'));
 	}
 
-	public function test_combine_rules()
+	public function returns_true_if_valitation_passes($type)
 	{
-		$uRules = [
-			'test' => 'required|min:3'
-		];
+		$mock_validator = m::mock('Keevitaja\Rulez\Validator');
+		$mock_validator->shouldReceive('validate')->once()->andReturn(true);
 
-		$bRules = [
-			'text' => 'required',
-			'email' => 'required|email'
-		];
+		$rulez = new Keevitaja\Rulez\Rulez($mock_validator);
 
-		$this->rulez->setName('testing');
+		$rules = $this->rules[$type];
 
-		$this->rulez->addBase($bRules);
-		$this->rulez->addUpdate($uRules);
+		$rulez->setName('users');
 
-		$merged = array_merge($uRules, $bRules);
+		$addType = 'add' . ucfirst($type);
+		$validateType = 'validate' . ucfirst($type);
 
-		$this->assertEquals($this->rulez->combineRules('testing', 'update'), $merged);
+		$rulez->$addType($rules);
+
+		$this->assertTrue($rulez->$validateType('users', []));
 	}
 
-	public function validateRules($type)
+	public function test_returns_true_if_base_valitation_passes()
 	{
-		$ruleType = 'add' . ucfirst($type);
-		$validationType = 'validate' . ucfirst($type);
-
-		$this->validator->shouldReceive('validate')->once()->andReturn(false);
-
-		$this->rulez->setName('testing');
-
-		$rules = [
-			'text' => 'required'
-		];
-
-		$this->rulez->$ruleType($rules);
-
-		$result = $this->rulez->$validationType('testing', []);
-
-		$this->assertFalse($result);
+		$this->returns_true_if_valitation_passes('base');
 	}
 
-	public function test_validate_rules_validation()
+	public function test_returns_true_if_create_valitation_passes()
 	{
-		$this->validateRules('base');
-		$this->validateRules('update');
-		$this->validateRules('create');
+		$this->returns_true_if_valitation_passes('create');
 	}
 
-	public function test_validation_errors()
+	public function test_returns_true_if_update_valitation_passes()
 	{
-		$this->validator->shouldReceive('getErrors')->once();
+		$this->returns_true_if_valitation_passes('update');
+	}
 
-		$this->rulez->validationErrors();
+	public function test_rules_get_combined()
+	{
+		$mock_validator = m::mock('Keevitaja\Rulez\Validator');
+
+		$rulez = new Keevitaja\Rulez\Rulez($mock_validator);
+
+		$rules = $this->rules;
+
+		$rulez->register('users', function($rulez) use($rules)
+		{
+			$rulez->addBase($rules['base']);
+			$rulez->addCreate($rules['create']);
+			$rulez->addUpdate($rules['update']);
+		});
+
+		$combinedRules = array_merge($rules['base'], $rules['update']);
+
+		$this->assertEquals($combinedRules, $rulez->combineRules('users', 'update'));
+	}
+
+	public function test_exclude_replaced_in_validate_update()
+	{
+		$mock_validator = m::mock('Keevitaja\Rulez\Validator');
+		$mock_validator->shouldReceive('validate')->once()->andReturn(true);
+
+		$rulez = new Keevitaja\Rulez\Rulez($mock_validator);
+
+		$rules = $this->rules;
+
+		$rulez->register('users', function($rulez) use($rules)
+		{
+			$rulez->addBase($rules['base']);
+			$rulez->addUpdate($rules['update']);
+		});
+
+		$result = $rulez->validateUpdate('users', [], 10);
+
+		$this->assertTrue($result);
+
+		$rules['update']['email'] = sprintf($rules['update']['email'], 10);
+
+		$this->assertEquals($rules['update'], $rulez->getRules('users', 'update'));
 	}
 }

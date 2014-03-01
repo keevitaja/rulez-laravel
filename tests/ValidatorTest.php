@@ -2,7 +2,7 @@
 
 use Mockery as m;
 
-class ValidatorTest extends TestCase {
+class ValidatorTest extends PHPUnit_Framework_TestCase {
 
 	public function tearDown()
 	{

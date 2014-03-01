@@ -2,7 +2,7 @@
 
 use Mockery as m;
 
-class RulezTest extends TestCase {
+class RulezTest extends PHPUnit_Framework_TestCase {
 
 	protected $rulez;
 	protected $validator;

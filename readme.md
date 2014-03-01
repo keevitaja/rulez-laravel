@@ -1,4 +1,6 @@
 # Rulez - Validation for Laravel
+[![Build Status](https://travis-ci.org/keevitaja/rulez-laravel.png?branch=master)](https://travis-ci.org/keevitaja/rulez-laravel)
+[![ProjectStatus](http://stillmaintained.com/keevitaja/rulez-laravel.png)](http://stillmaintained.com/keevitaja/keeper-laravel)
 
 This package is not ready for production!
 

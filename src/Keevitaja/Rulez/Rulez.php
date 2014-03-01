@@ -11,9 +11,14 @@ class Rulez {
 		$this->validator = $validator;
 	}
 
-	public function register($name, callable $callback)
+	public function setName($name)
 	{
 		$this->name = $name;
+	}
+
+	public function register($name, callable $callback)
+	{
+		$this->setName($name);
 
 		call_user_func($callback, $this, $name);
 	}
@@ -77,5 +82,10 @@ class Rulez {
 	public function validationErrors()
 	{
 		return $this->validator->getErrors();
+	}
+
+	public function getRules($name, $type)
+	{
+		return $this->rules[$name][$type];
 	}
 }

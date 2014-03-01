@@ -2,9 +2,9 @@
 [![Build Status](https://travis-ci.org/keevitaja/rulez-laravel.png?branch=master)](https://travis-ci.org/keevitaja/rulez-laravel)
 [![ProjectStatus](http://stillmaintained.com/keevitaja/rulez-laravel.png)](http://stillmaintained.com/keevitaja/keeper-laravel)
 
-This package is not ready for production!
+Rulez provides easy way for setting up input validation rules and validation service. You can add all your rules from one place and later use a facade to validate input. 
 
-Rulez provides easy way for setting up input validation rules and validation service.
+Rulez can set sepparate rule for create and update methods. Handy when there's a unique field.
 
 ## Installation
 

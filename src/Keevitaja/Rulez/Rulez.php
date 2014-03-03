@@ -158,8 +158,15 @@ class Rulez {
 	 *
 	 * @return boolean
 	 */
-	public function validateUpdate($name, $input, $exclude = false)
+	public function validateUpdate($name, $input, $exclude = false, $noPassword = false)
 	{
+		if ($noPassword)
+		{
+			if (isset($this->rules[$name]['base']['password'])) unset($this->rules[$name]['base']['password']);
+			if (isset($this->rules[$name]['create']['password'])) unset($this->rules[$name]['create']['password']);
+			if (isset($this->rules[$name]['update']['password'])) unset($this->rules[$name]['update']['password']);
+		}
+
 		if ($exclude)
 		{
 			foreach ($this->rules[$name]['update'] as $field => $rule) 
